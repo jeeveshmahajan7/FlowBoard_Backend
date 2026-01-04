@@ -34,6 +34,11 @@ router.post(
       .optional()
       .isString()
       .withMessage("Project description must be a string"),
+    body("status")
+      .notEmpty()
+      .withMessage("Project status is required")
+      .isIn(["Not Started", "In Progress", "Completed", "On Hold"])
+      .withMessage("Invalid project status"),
   ],
   validate,
   createProject

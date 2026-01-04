@@ -9,6 +9,11 @@ const projectSchema = new mongoose.Schema({
   description: {
     type: String,
   }, // Optional field for project details
+  status: {
+    type: String,
+    enum: ["Not Started", "In Progress", "Completed", "On Hold"],
+    default: "Not Started",
+  },
   createdAt: {
     type: Date,
     default: Date.now,
