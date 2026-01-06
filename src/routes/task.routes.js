@@ -45,9 +45,15 @@ router.post(
 
     body("timeToComplete")
       .notEmpty()
-      .withMessage("timeToComplete is required")
+      .withMessage("Time to complete is required")
       .isNumeric()
-      .withMessage("timeToComplete must be a number"),
+      .withMessage("Time to complete must be a number"),
+
+    body("dueDate")
+      .notEmpty()
+      .withMessage("Task due date is required")
+      .isDate()
+      .withMessage("Task due date must be a date"),
 
     body("status")
       .optional()
@@ -100,6 +106,11 @@ router.put(
       .optional()
       .isIn(["To Do", "In Progress", "Completed", "Blocked"])
       .withMessage("Invalid task status"),
+
+    body("dueDate")
+      .optional()
+      .isDate()
+      .withMessage("Task due date must be a valid date"),
   ],
   validate,
   updateTask

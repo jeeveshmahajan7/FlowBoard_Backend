@@ -27,6 +27,10 @@ const taskSchema = new mongoose.Schema({
     type: Number,
     required: true,
   }, // Number of days to complete the task
+  dueDate: {
+    type: Date,
+    required: true,
+  },
   status: {
     type: String,
     enum: ["To Do", "In Progress", "Completed", "Blocked"],
@@ -46,6 +50,5 @@ const taskSchema = new mongoose.Schema({
 taskSchema.pre("save", function () {
   this.updatedAt = Date.now();
 });
-
 
 module.exports = mongoose.model("Task", taskSchema);
