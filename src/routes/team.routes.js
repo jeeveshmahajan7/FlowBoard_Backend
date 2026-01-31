@@ -5,7 +5,12 @@ const { body } = require("express-validator");
 const validate = require("../middlewares/validation.middleware");
 const verifyJWT = require("../middlewares/auth.middleware");
 
-const { createTeam, getAllTeams } = require("../controllers/team.controller");
+const {
+  createTeam,
+  getAllTeams,
+  getTeamById,
+  addMemberToTeam,
+} = require("../controllers/team.controller");
 
 // post team request is protected by verifyJWT
 // POST /teams
@@ -25,10 +30,22 @@ router.post(
       .withMessage("Task description must be a string"),
   ],
   validate,
-  createTeam
+  createTeam,
 );
 
 // GET /teams
-router.get("", getAllTeams);
+router.get("/", getAllTeams);
+
+// GET /teams/:teamId
+router.get("/:teamId", getTeamById);
+
+// POST /teams/:teamId/members
+router.put(
+  "/:teamId/members",
+  verifyJWT,
+  [body("userId").notEmpty().withMessage("User Id is required")],
+  validate,
+  addMemberToTeam,
+);
 
 module.exports = router;

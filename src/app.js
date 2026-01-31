@@ -10,6 +10,7 @@ const projectRoutes = require("./routes/project.routes");
 const tagRoutes = require("./routes/tag.routes");
 const reportRoutes = require("./routes/report.routes");
 const authRoutes = require("./routes/auth.routes");
+const userRoutes = require("./routes/user.routes");
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use("/projects", projectRoutes);
 app.use("/tags", tagRoutes);
 app.use("/report", reportRoutes);
 app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
 
 app.use(errorHandler);
 
