@@ -97,9 +97,49 @@ const addMemberToTeam = async (req, res, next) => {
   }
 };
 
+// REMOVE MEMBER FROM TEAM
+const removeMemberFromTeam = async (req, res, next) => {
+  try {
+    const { teamId, userId } = req.params;
+
+    const team = await Team.findById(teamId);
+
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Prevent removing creator (first member)
+    if (team.members[0].toString() === userId) {
+      return res.status(400).json({
+        message: "Team creator cannot be removed.",
+      });
+    }
+
+    // Remove member
+    team.members = team.members.filter(
+      (memberId) => memberId.toString() !== userId,
+    );
+
+    await team.save();
+
+    const updatedTeam = await Team.findById(teamId).populate(
+      "members",
+      "name email",
+    );
+
+    res.status(200).json({
+      message: "Member removed successfully.",
+      team: updatedTeam,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createTeam,
   getAllTeams,
   getTeamById,
   addMemberToTeam,
+  removeMemberFromTeam,
 };

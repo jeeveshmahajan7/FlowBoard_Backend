@@ -10,6 +10,7 @@ const {
   getAllTeams,
   getTeamById,
   addMemberToTeam,
+  removeMemberFromTeam,
 } = require("../controllers/team.controller");
 
 // post team request is protected by verifyJWT
@@ -47,5 +48,8 @@ router.put(
   validate,
   addMemberToTeam,
 );
+
+// DELETE /teams/:teamId/members/:userId
+router.delete("/:teamId/members/:userId", verifyJWT, removeMemberFromTeam);
 
 module.exports = router;
