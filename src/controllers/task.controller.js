@@ -6,7 +6,7 @@ const createTask = async (req, res, next) => {
       ...req.body,
       owners: [req.user.userId],
     });
-    
+
     const savedTask = await task.save();
 
     res
@@ -61,20 +61,33 @@ const getAllTasks = async (req, res, next) => {
 
 const updateTask = async (req, res, next) => {
   try {
+    const updates = { ...req.body };
+
+    // when status changes, force updatedAt
+    if (req.body.status === "Completed") {
+      updates.updatedAt = new Date();
+    }
+
     const updatedTask = await Task.findByIdAndUpdate(
       req.params.taskId,
-      req.body,
+      { $set: updates },
       {
         new: true,
         runValidators: true,
-      }
-    );
+      },
+    )
+      .populate("project", "name")
+      .populate("team", "name")
+      .populate("owners", "name email");
 
     if (!updatedTask) {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    res.status(200).json({ message: "Task updated successfully", updatedTask });
+    res.status(200).json({
+      message: "Task updated successfully",
+      updatedTask,
+    });
   } catch (error) {
     next(error);
   }
