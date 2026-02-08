@@ -12,7 +12,11 @@ const completedTasksLastWeek = async (req, res, next) => {
         $gte: sevenDaysAgo,
         $lte: now,
       },
-    }).sort({ updatedAt: -1 });
+    })
+      .populate("team", "name")
+      .populate("project", "name")
+      .populate("owners", "name")
+      .sort({ updatedAt: -1 });
 
     res.status(200).json({
       message: "Tasks completed in last 7 days fetched successfully",
@@ -32,7 +36,7 @@ const getPendingWorkDays = async (req, res, next) => {
 
     const totalPendingDays = pendingTasks.reduce(
       (sum, task) => sum + (task.timeToComplete || 0),
-      0
+      0,
     );
 
     res.status(200).json({
@@ -48,44 +52,48 @@ const closedTasks = async (req, res, next) => {
   try {
     const { groupBy } = req.query;
 
-    if (!groupBy) {
+    if (!["team", "project", "owner"].includes(groupBy)) {
       return res.status(400).json({
-        message: "Missing required query param: groupBy",
+        message: "groupBy must be one of: team, project, owner",
       });
     }
 
-    const allowedGroups = ["team", "project", "owner"];
-
-    if (!allowedGroups.includes(groupBy)) {
-      return res
-        .status(400)
-        .json({ message: "groupBy must be one of: team, project, owner" });
-    }
-
     // 1️⃣ get all completed tasks
-    const completedTasks = await Task.find({ status: "Completed" });
+    const completedTasks = await Task.find({ status: "Completed" })
+      .populate("team", "name")
+      .populate("project", "name")
+      .populate("owners", "name");
 
-    const counts = {};
+    const map = {};
 
     completedTasks.forEach((task) => {
       if (groupBy === "owner") {
-        task.owners.forEach((ownerId) => {
-          counts[ownerId] = (counts[ownerId] || 0) + 1;
+        task.owners.forEach((owner) => {
+          // ??= is the nullish coalescing assignment operator in JavaScript
+          // The operator performs an assignment only if the variable's current value is null or undefined.
+          map[owner._id] ??= {
+            id: owner._id,
+            name: owner.name,
+            count: 0,
+          };
+          map[owner._id].count++;
         });
       } else {
-        const key = task[groupBy];
-        counts[key] = (counts[key] || 0) + 1;
+        const entity = task[groupBy]; //team or project
+        if (!entity) return;
+
+        map[entity._id] ??= {
+          id: entity._id,
+          name: entity.name,
+          count: 0,
+        };
+        map[entity._id].count++;
       }
     });
 
-    const result = Object.entries(counts).map(([id, count]) => ({
-      id,
-      count,
-    }));
-
     res.status(200).json({
       message: `Closed tasks grouped by ${groupBy}`,
-      data: result,
+      data: Object.values(map),
     });
   } catch (error) {
     next(error);
